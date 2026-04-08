@@ -6,46 +6,16 @@
     <title>bigalexn8n Apps</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --tg-theme-bg-color: #f0f0f0;
-            --tg-theme-secondary-bg-color: #fff;
-            --tg-theme-text-color: #000;
-            --tg-theme-button-color: #2481cc;
-            --tg-theme-button-text-color: #fff;
-        }
-        body {
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; box-sizing: border-box;
-        }
-        .header { margin-bottom: 30px; text-align: center; }
-        .header h1 { margin: 0; font-size: 24px; }
-        .header p { color: #666; margin-top: 8px; }
-
-        .apps-grid {
-            display: grid; grid-template-columns: 1fr; gap: 16px; width: 100%; max-width: 400px;
-        }
-        .app-card {
-            background: var(--tg-theme-secondary-bg-color);
-            padding: 20px; border-radius: 16px; text-decoration: none;
-            display: flex; align-items: center; gap: 16px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.1s;
-            border: 2px solid transparent;
-            cursor: pointer;
-        }
-        .app-card:active { transform: scale(0.98); border-color: var(--tg-theme-button-color); }
-        .app-icon { font-size: 32px; }
-        .app-info { display: flex; flex-direction: column; }
-        .app-title { font-weight: bold; font-size: 18px; color: var(--tg-theme-text-color); }
-        .app-desc { font-size: 13px; color: #888; margin-top: 4px; }
+        :root { --tg-theme-bg-color: #f0f2f5; --tg-theme-secondary-bg-color: #ffffff; --tg-theme-text-color: #222; --tg-theme-button-color: #3390ec; }
+        body { background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); font-family: -apple-system, sans-serif; margin: 0; padding: 16px; }
+        .header { text-align: center; margin-bottom: 24px; }
+        .app-card { display: flex; align-items: center; background: var(--tg-theme-secondary-bg-color); padding: 16px; border-radius: 14px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-decoration: none; color: inherit; }
+        .app-icon { font-size: 32px; margin-right: 16px; }
+        .app-title { font-weight: 600; font-size: 16px; display: block; }
+        .app-desc { font-size: 13px; color: #888; }
     </style>
 </head>
 <body>
-
     <div class="header">
         <div id="main-hero-img" style="font-size: 60px; margin-bottom: 10px;">📚</div>
         <h1>Панель управления</h1>
@@ -53,10 +23,6 @@
     </div>
 
     <div class="apps-grid">
-        <a href="/manage?type=ko" class="app-card">⚙️ Файлы</a>
-        <a href="/manage?type=xlsx" class="app-card">⚙️ Глоссарии</a>
-        <a href="/manage?type=ru" class="app-card">⚙️ Промпты</a>
-        <!-- Кнопка Нового перевода -->
         <a href="/files" class="app-card" id="files-link-btn">
             <span class="app-icon">📁</span>
             <div class="app-info">
@@ -65,23 +31,13 @@
             </div>
         </a>
 
-        <!-- Кнопка Промптов -->
-        <a href="/prompts" class="app-card">
-            <span class="app-icon">📝</span>
+        <a href="/manage-menu" class="app-card">
+            <span class="app-icon">🗑️</span>
             <div class="app-info">
-                <span class="app-title">Промпты</span>
-                <span class="app-desc">Настройка ИИ-агентов</span>
+                <span class="app-title">Удаление файлов</span>
+                <span class="app-desc">Деактивация файлов, глоссариев, промптов</span>
             </div>
         </a>
-
-        <!-- Заглушка Статистики -->
-        <div class="app-card" style="opacity: 0.6; cursor: not-allowed;">
-            <span class="app-icon">📊</span>
-            <div class="app-info">
-                <span class="app-title">Статистика</span>
-                <span class="app-desc">В разработке</span>
-            </div>
-        </div>
     </div>
 
     <script>

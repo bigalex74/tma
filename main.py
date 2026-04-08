@@ -197,9 +197,9 @@ async def get_prompt_history(prompt_id: int):
 async def main_hub():
     with open("static/index.html", "r", encoding="utf-8") as f: return f.read()
 
-@app.get("/files", response_class=HTMLResponse)
-async def files_page():
-    with open("static/files/index.html", "r", encoding="utf-8") as f: return f.read()
+@app.get("/manage-menu", response_class=HTMLResponse)
+async def manage_menu():
+    with open("static/manage-menu.html", "r", encoding="utf-8") as f: return f.read()
 
 @app.get("/manage", response_class=HTMLResponse)
 async def manage_page():
