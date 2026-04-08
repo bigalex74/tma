@@ -255,7 +255,6 @@
         }
 
         function cancel() {
-            alert("Cancel start");
             const hasChanges = (document.getElementById('f-name').value !== initialName || document.getElementById('f-prompt').value !== initialText);
             if (hasChanges) {
                 tg.showConfirm("Отменить изменения?", (ok) => { if (ok) renderList(); });
