@@ -27,10 +27,19 @@ class StartTranslationRequest(BaseModel):
     create_glossary: bool = False
 
 @app.get("/api/get-form-data")
-async def get_form_data():
+async def get_form_data(chat_id: int):
+    print(f"DEBUG: Requesting form data for chat_id: {chat_id}")
     conn = get_conn_pg()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT type, lang, message->'document'->>'file_name' as name, message->'document'->>'file_id' as file_id FROM telegram_messages WHERE message->'document' IS NOT NULL AND (is_translate IS NULL OR is_translate = false) ORDER BY date_time DESC")
+    # Используем chat_id для фильтрации
+    cur.execute("""
+        SELECT type, lang, message->'document'->>'file_name' as name, message->'document'->>'file_id' as file_id 
+        FROM telegram_messages 
+        WHERE (message->'chat'->>'id')::bigint = %s 
+        AND message->'document' IS NOT NULL 
+        AND (is_translate IS NULL OR is_translate = false) 
+        ORDER BY date_time DESC
+    """, (chat_id,))
     all_items = cur.fetchall()
     cur.close()
     conn.close()
