@@ -23,6 +23,7 @@ def get_conn_pg(): return psycopg2.connect(**DB_CONFIG_POSTGRES)
 class StartTranslationRequest(BaseModel):
     file_id: str
     file_name: str
+    chat_id: int = None
     bp_file_id: str = None
     bp_file_name: str = None
     pp_file_id: str = None
@@ -62,6 +63,72 @@ async def hide_files(data: dict):
     conn.close()
     return {"status": "success"}
 
+@app.get("/api/prompts")
+async def get_prompts_db():
+    conn = get_conn_pg()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("SELECT id, name, prompt FROM translate_prompts ORDER BY name")
+    data = cur.fetchall()
+    cur.close()
+    conn.close()
+    return data
+
+@app.post("/api/prompts")
+async def create_prompt(data: dict):
+    conn = get_conn_pg()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO translate_prompts (name, prompt) VALUES (%s, %s)", (data['name'], data['prompt']))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"status": "success"}
+
+@app.put("/api/prompts/{prompt_id}")
+async def update_prompt(prompt_id: int, data: dict):
+    conn = get_conn_pg()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO translate_prompts_history (prompt_id, name, prompt, version_date) SELECT id, name, prompt, CURRENT_TIMESTAMP FROM translate_prompts WHERE id = %s", (prompt_id,))
+    cur.execute("UPDATE translate_prompts SET name = %s, prompt = %s WHERE id = %s", (data['name'], data['prompt'], prompt_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"status": "success"}
+
+@app.delete("/api/prompts/{prompt_id}")
+async def delete_prompt(prompt_id: int):
+    conn = get_conn_pg()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM translate_prompts WHERE id = %s", (prompt_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"status": "success"}
+
+@app.get("/api/prompts/{prompt_id}/history")
+async def get_prompt_history(prompt_id: int):
+    conn = get_conn_pg()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("SELECT id, prompt_id, name, prompt, version_date FROM translate_prompts_history WHERE prompt_id = %s ORDER BY version_date DESC", (prompt_id,))
+    data = cur.fetchall()
+    cur.close()
+    conn.close()
+    return data
+
+@app.post("/api/upload-file")
+async def upload_file(file: UploadFile = File(...)):
+    try:
+        if file.filename.endswith(".docx"):
+            with open("temp.docx", "wb") as buffer: shutil.copyfileobj(file.file, buffer)
+            doc = docx.Document("temp.docx")
+            full_text = "\n".join([para.text for para in doc.paragraphs])
+            os.remove("temp.docx")
+            return {"text": full_text}
+        else:
+            content = await file.read()
+            return {"text": content.decode("utf-8")}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/", response_class=HTMLResponse)
 async def main_hub():
     with open("static/index.html", "r", encoding="utf-8") as f: return f.read()
@@ -77,5 +144,9 @@ async def manage_menu():
 @app.get("/manage", response_class=HTMLResponse)
 async def manage_page():
     with open("static/manage/index.html", "r", encoding="utf-8") as f: return f.read()
+
+@app.get("/prompts", response_class=HTMLResponse)
+async def prompts_page():
+    with open("static/prompts/index.html", "r", encoding="utf-8") as f: return f.read()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
