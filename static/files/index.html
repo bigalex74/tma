@@ -44,7 +44,8 @@
             data.prompts_ru.forEach(p => { 
                 [document.getElementById('sel-bp'), document.getElementById('sel-pp')].forEach(s => s.innerHTML += `<option value="${p.file_id}">${p.name}</option>`);
             });
-        }
+            validate();
+            } catch (e) {
         function validate() { 
             const file = document.getElementById('sel-file').value;
             const mode = document.getElementById('glossary-mode').value;
