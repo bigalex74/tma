@@ -39,18 +39,18 @@
         <label class="label">✍️ Промт для постредактирования</label>
         <select id="sel-pp" onchange="validate()"><option value="">Выберите...</option></select>
     </div>
-    
     <button id="btn-start" class="btn-start" onclick="submit()" disabled>🚀 Начать перевод</button>
-    <button id="btn-cancel" class="btn-cancel" onclick="cancel()">❌ Отмена</button>
+    <button id="btn-cancel" class="btn-cancel" onclick="window.location.href='/'">❌ Отмена</button>
+    </div>
 
     <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        function cancel() { tg.showConfirm("Отменить настройки?", (ok) => { if (ok) window.location.href = "/"; }); }
-        function toggleGlossary() { 
-            document.getElementById('sel-glossary').style.display = (document.getElementById('glossary-mode').value === 'use_existing') ? 'block' : 'none'; 
-            validate(); 
-        }
+    let tg = window.Telegram.WebApp;
+    tg.expand();
+
+    function toggleGlossary() { 
+        document.getElementById('sel-glossary').style.display = (document.getElementById('glossary-mode').value === 'use_existing') ? 'block' : 'none'; 
+        validate(); 
+    }
         async function init() {
             const data = await (await fetch('/api/get-form-data')).json();
             data.files_ko.forEach(f => document.getElementById('sel-file').innerHTML += `<option value="${f.file_id}">${f.name}</option>`);
