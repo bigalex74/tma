@@ -1,17 +1,24 @@
 const { test, expect } = require('@playwright/test');
 
-test('should create a new prompt via UI', async ({ page }) => {
-  await page.goto('/');
+test('Smoke test: verify UI elements and form validation', async ({ page }) => {
+  await page.goto('/files');
   
-  // Добавляем промпт
-  await page.click('#add-btn');
-  await page.fill('#f-name', 'E2E Test Prompt');
-  await page.fill('#f-prompt', 'This is a test prompt content');
+  // Ждем, пока селекты заполнятся (init вызывается в конце скрипта)
+  await page.waitForSelector('#sel-file option:nth-child(2)');
   
-  // Сохраняем
-  await page.click('#save-btn');
+  // Проверка селектов
+  const fileOptions = await page.locator('#sel-file option').count();
+  expect(fileOptions).toBeGreaterThan(1);
   
-  // Проверяем появление в списке (после перезагрузки или обновления)
-  await page.goto('/');
-  await expect(page.locator('text=E2E Test Prompt')).toBeVisible();
+  // Проверка кнопки
+  const startBtn = page.locator('#btn-start');
+  await expect(startBtn).toBeDisabled();
+
+  // Выбор значений
+  await page.selectOption('#sel-file', { index: 1 });
+  await page.selectOption('#sel-bp', { index: 1 });
+  await page.selectOption('#sel-pp', { index: 1 });
+  
+  // Проверка разблокировки
+  await expect(startBtn).toBeEnabled();
 });

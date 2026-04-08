@@ -65,11 +65,15 @@
             const file = document.getElementById('sel-file').value;
             const mode = document.getElementById('glossary-mode').value;
             const gloss = document.getElementById('sel-glossary').value;
-            const bp = document.getElementById('sel-bp').value;
-            const pp = document.getElementById('sel-pp').value;
-            const glossValid = (mode === 'create_ai' || (mode === 'use_existing' && gloss !== ''));
-            document.getElementById('btn-start').disabled = !(file && bp && pp && glossValid);
+            
+            // Файл обязателен. Глоссарий обязателен, если не AI (т.е. если use_existing, то gloss не пуст).
+            const isGlossValid = (mode === 'create_ai' || (mode === 'use_existing' && gloss !== ''));
+            // Если выбран "none" (которого у нас нет, но для надежности), считаем невалидным
+            const isModeValid = (mode === 'use_existing' || mode === 'create_ai');
+
+            document.getElementById('btn-start').disabled = !(file && isGlossValid && isModeValid);
         }
+
         async function submit() {
             const payload = {
                 file_id: document.getElementById('sel-file').value,
@@ -80,7 +84,12 @@
                 create_glossary: document.getElementById('glossary-mode').value === 'create_ai'
             };
             const res = await fetch('/api/start-translation', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-            if (res.ok) { tg.showAlert("Запущено!"); setTimeout(() => tg.close(), 500); } else { tg.showAlert("Ошибка!"); }
+            if (res.ok) { 
+                tg.showAlert("Перевод запущен!"); 
+                tg.close();
+            } else { 
+                tg.showAlert("Ошибка запуска!"); 
+            }
         }
         init();
     </script>
