@@ -196,23 +196,33 @@
         }
 
         async function save() {
-            alert("Save start");
             const name = document.getElementById('f-name').value;
             const prompt = document.getElementById('f-prompt').value;
+            const payload = { name, prompt };
+            
+            console.log("Saving prompt:", payload);
+            
             const method = editingItem ? 'PUT' : 'POST';
             const url = editingItem ? `/api/prompts/${editingItem.id}` : '/api/prompts';
             
-            const res = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, prompt })
-            });
-            
-            if (res.ok) { 
-                tg.showAlert("Сохранено!"); 
-                load(); 
-            } else {
-                tg.showAlert("Ошибка при сохранении!");
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) { 
+                    tg.showAlert("Сохранено!"); 
+                    load(); 
+                } else {
+                    const err = await res.text();
+                    console.error("Save error:", err);
+                    tg.showAlert("Ошибка: " + err);
+                }
+            } catch (err) {
+                console.error("Fetch error:", err);
+                tg.showAlert("Ошибка сети");
             }
         }
 
