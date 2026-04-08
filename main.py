@@ -33,6 +33,7 @@ N8N_WEBHOOK_URL = "https://bigalexn8n.ru/webhook/trigger-translation"
 class StartTranslationRequest(BaseModel):
     file_id: str
     file_name: str
+    chat_id: int = None
     bp_file_id: str = None
     bp_file_name: str = None
     pp_file_id: str = None

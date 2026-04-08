@@ -76,7 +76,9 @@
             const bp = document.getElementById('sel-bp');
             const pp = document.getElementById('sel-pp');
             const payload = {
-                file_id: f.value, file_name: f.options[f.selectedIndex].text,
+                file_id: f.value, 
+                file_name: f.options[f.selectedIndex].text,
+                chat_id: tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null,
                 bp_file_id: bp.value, bp_file_name: bp.options[bp.selectedIndex].text,
                 pp_file_id: pp.value, pp_file_name: pp.options[pp.selectedIndex].text,
                 glossary_id: document.getElementById('glossary-mode').value === 'use_existing' ? g.value : null,
