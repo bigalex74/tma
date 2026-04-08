@@ -14,167 +14,57 @@
             --tg-theme-button-text-color: #fff;
             --tg-theme-hint-color: #999;
         }
-        body {
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0; padding: 16px;
-            display: flex; flex-direction: column; gap: 16px;
-        }
-        .section {
-            background: var(--tg-theme-secondary-bg-color);
-            padding: 12px; border-radius: 12px;
-            display: flex; flex-direction: column; gap: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
+        body { background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); font-family: sans-serif; margin: 0; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+        .section { background: var(--tg-theme-secondary-bg-color); padding: 12px; border-radius: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .label { font-size: 12px; font-weight: bold; color: var(--tg-theme-button-color); text-transform: uppercase; }
-        select {
-            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd;
-            background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color);
-            font-size: 15px; cursor: pointer;
-        }
-        .btn-start {
-            width: 100%; padding: 16px; border-radius: 12px; border: none;
-            background-color: var(--tg-theme-button-color); color: white;
-            font-size: 18px; font-weight: bold; cursor: pointer;
-            margin-top: 10px; transition: opacity 0.2s;
-        }
-        .btn-start:disabled { opacity: 0.5; cursor: not-allowed; }
-        .footer-link { text-align: center; margin-top: 10px; }
-        .footer-link a { color: var(--tg-theme-hint-color); text-decoration: none; font-size: 14px; }
+        select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); font-size: 15px; cursor: pointer; }
+        .btn-start { width: 100%; padding: 16px; border-radius: 12px; border: none; background-color: var(--tg-theme-button-color); color: white; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .btn-start:disabled { opacity: 0.5; }
     </style>
 </head>
 <body>
-
-    <div style="text-align: center; margin-bottom: 5px;">
-        <h2 style="margin:0;">Новый перевод</h2>
-        <p style="font-size:14px; color:#666; margin:5px 0 0 0;">Настройте параметры из файлов бота</p>
-    </div>
-
-    <!-- Выбор Файла (KO) -->
+    <div style="text-align: center; margin-bottom: 5px;"><h2>Новый перевод</h2></div>
+    <div class="section"><label class="label">📄 Файл для перевода</label><select id="sel-file" onchange="validate()"><option value="">Выберите...</option></select></div>
     <div class="section">
-        <label class="label">📄 Файл для перевода (KO)</label>
-        <select id="sel-file" onchange="validate()">
-            <option value="">Выберите корейский текст...</option>
-        </select>
+        <label class="label">📖 Глоссарий</label>
+        <select id="glossary-mode" onchange="toggleGlossary()"><option value="use_existing">Использовать готовый</option><option value="create_ai">Создать новый (AI)</option></select>
+        <select id="sel-glossary" style="margin-top: 8px;" onchange="validate()"><option value="">Выберите...</option></select>
     </div>
-
-    <!-- Выбор Глоссария -->
-    <div class="section">
-        <label class="label">📖 Глоссарий (XLSX)</label>
-        <select id="glossary-mode" onchange="toggleGlossary()">
-            <option value="use_existing">Использовать готовый</option>
-            <option value="create_ai">Создать новый (AI)</option>
-        </select>
-        <select id="sel-glossary" style="margin-top: 8px;" onchange="validate()">
-            <option value="">Выберите файл глоссария...</option>
-        </select>
-    </div>
-
-    <!-- Выбор Промпта Переводчика (RU) -->
-    <div class="section">
-        <label class="label">🤖 Промпт Переводчика (RU)</label>
-        <select id="sel-bp" onchange="validate()">
-            <option value="">Выберите файл промпта...</option>
-        </select>
-    </div>
-
-    <!-- Выбор Промпта Редактора (RU) -->
-    <div class="section">
-        <label class="label">✍️ Промпт Редактора (RU)</label>
-        <select id="sel-pp" onchange="validate()">
-            <option value="">Выберите файл промпта...</option>
-        </select>
+    <div class="section"><label class="label">🤖 Промпт</label><select id="sel-bp" onchange="validate()"><option value="">Выберите...</option></select></div>
+    <div class="section"><label class="label">✍️ Редактор</label><select id="sel-pp" onchange="validate()"><option value="">Выберите...</option></select></div>
+    
+    <div class="bottom-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+        <button id="btn-start" class="btn-start" onclick="submit()" disabled>🚀 Начать перевод</button>
+        <button id="btn-cancel" class="btn-start" style="background-color: #df3f40;" onclick="cancel()">❌ Отмена</button>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
-        function cancel() { tg.showConfirm("Отменить настройки?", (ok) => { if (ok) window.location.href = "/"; }); }
         tg.expand();
-
+        function cancel() { tg.showConfirm("Отменить?", (ok) => { if (ok) window.location.href = "/"; }); }
+        function toggleGlossary() { document.getElementById('sel-glossary').style.display = (document.getElementById('glossary-mode').value === 'use_existing') ? 'block' : 'none'; validate(); }
         async function init() {
-            try {
-                const res = await fetch('/api/get-form-data');
-                const data = await res.json();
-                
-                const selFile = document.getElementById('sel-file');
-                data.files_ko.forEach(f => {
-                    const opt = document.createElement('option');
-                    opt.value = f.file_id;
-                    opt.textContent = f.name;
-                    selFile.appendChild(opt);
-                });
-
-                const selGloss = document.getElementById('sel-glossary');
-                data.glossaries.forEach(g => {
-                    const opt = document.createElement('option');
-                    opt.value = g.file_id;
-                    opt.textContent = g.name;
-                    selGloss.appendChild(opt);
-                });
-
-                const selBP = document.getElementById('sel-bp');
-                const selPP = document.getElementById('sel-pp');
-                data.prompts_ru.forEach(p => {
-                    const opt1 = document.createElement('option');
-                    opt1.value = p.file_id;
-                    opt1.textContent = p.name;
-                    selBP.appendChild(opt1);
-
-                    const opt2 = document.createElement('option');
-                    opt2.value = p.file_id;
-                    opt2.textContent = p.name;
-                    selPP.appendChild(opt2);
-                });
-            } catch (e) {
-                console.error(e);
-                tg.showAlert("Ошибка инициализации данных.");
-            }
-        }
-
-        function toggleGlossary() {
-            const mode = document.getElementById('glossary-mode').value;
-            const select = document.getElementById('sel-glossary');
-            select.style.display = (mode === 'use_existing') ? 'block' : 'none';
-            validate();
-        }
-
-        async function submit() {
-            const fileSelect = document.getElementById('sel-file');
-            const bpSelect = document.getElementById('sel-bp');
-            const ppSelect = document.getElementById('sel-pp');
-            const mode = document.getElementById('glossary-mode').value;
-            const glSelect = document.getElementById('sel-glossary');
-
-            const payload = {
-                file_id: fileSelect.value,
-                file_name: fileSelect.options[fileSelect.selectedIndex].text,
-                bp_file_id: bpSelect.value,
-                pp_file_id: ppSelect.value,
-                glossary_id: (mode === 'use_existing') ? glSelect.value : null,
-                create_glossary: (mode === 'create_ai')
-            };
-
-            // ... (далее submit логика)
-
-
-            tg.showConfirm(`Запустить перевод файла "${payload.file_name}"?`, async (ok) => {
-                if (ok) {
-                    const res = await fetch('/api/start-translation', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    if (res.ok) {
-                        tg.showAlert("Процесс успешно запущен!");
-                        tg.close();
-                    } else {
-                        tg.showAlert("Ошибка запуска n8n.");
-                    }
-                }
+            const res = await fetch('/api/get-form-data');
+            const data = await res.json();
+            data.files_ko.forEach(f => document.getElementById('sel-file').innerHTML += `<option value="${f.file_id}">${f.name}</option>`);
+            data.glossaries.forEach(g => document.getElementById('sel-glossary').innerHTML += `<option value="${g.file_id}">${g.name}</option>`);
+            data.prompts_ru.forEach(p => { 
+                [document.getElementById('sel-bp'), document.getElementById('sel-pp')].forEach(s => s.innerHTML += `<option value="${p.file_id}">${p.name}</option>`);
             });
         }
-
+        function validate() { document.getElementById('btn-start').disabled = !(document.getElementById('sel-file').value && document.getElementById('sel-bp').value && document.getElementById('sel-pp').value); }
+        async function submit() {
+            const payload = {
+                file_id: document.getElementById('sel-file').value,
+                file_name: document.getElementById('sel-file').options[document.getElementById('sel-file').selectedIndex].text,
+                bp_file_id: document.getElementById('sel-bp').value,
+                pp_file_id: document.getElementById('sel-pp').value,
+                glossary_id: document.getElementById('glossary-mode').value === 'use_existing' ? document.getElementById('sel-glossary').value : null,
+                create_glossary: document.getElementById('glossary-mode').value === 'create_ai'
+            };
+            const res = await fetch('/api/start-translation', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            if (res.ok) { tg.showAlert("Запущено!"); tg.close(); } else { tg.showAlert("Ошибка!"); }
+        }
         init();
     </script>
 </body>
