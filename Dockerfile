@@ -11,8 +11,8 @@ COPY main.py .
 COPY static ./static
 
 # Добавлен пакет requests
-RUN pip install fastapi uvicorn psycopg2-binary pydantic requests python-docx python-multipart httpx
+RUN pip install fastapi uvicorn psycopg2-binary pydantic requests python-docx python-multipart httpx pyTelegramBotAPI
 
 EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "python3 telegram_polling.py & uvicorn main:app --host 0.0.0.0 --port 8000"]
