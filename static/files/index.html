@@ -67,8 +67,24 @@
             <option value="use_existing">Использовать готовый</option>
             <option value="create_ai">Создать новый (AI)</option>
         </select>
-        <select id="sel-glossary" style="margin-top: 8px; display: none;">
+        <select id="sel-glossary" style="margin-top: 8px; display: none;" onchange="validate()">
             <option value="">Выберите файл глоссария...</option>
+        </select>
+    </div>
+
+    <!-- Выбор Промпта Переводчика (RU) -->
+    <div class="section">
+        <label class="label">🤖 Промпт Переводчика (RU)</label>
+        <select id="sel-bp" onchange="validate()">
+            <option value="">Выберите файл промпта...</option>
+        </select>
+    </div>
+
+    <!-- Выбор Промпта Редактора (RU) -->
+    <div class="section">
+        <label class="label">✍️ Промпт Редактора (RU)</label>
+        <select id="sel-pp" onchange="validate()">
+            <option value="">Выберите файл промпта...</option>
         </select>
     </div>
 
