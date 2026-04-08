@@ -196,6 +196,7 @@
         }
 
         async function save() {
+            alert("Save start");
             const name = document.getElementById('f-name').value;
             const prompt = document.getElementById('f-prompt').value;
             const method = editingItem ? 'PUT' : 'POST';
@@ -244,6 +245,7 @@
         }
 
         function cancel() {
+            alert("Cancel start");
             const hasChanges = (document.getElementById('f-name').value !== initialName || document.getElementById('f-prompt').value !== initialText);
             if (hasChanges) {
                 tg.showConfirm("Отменить изменения?", (ok) => { if (ok) renderList(); });
