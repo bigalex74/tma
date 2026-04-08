@@ -36,44 +36,27 @@
         tg.expand();
         function cancel() { tg.showConfirm("Отменить настройки?", (ok) => { if (ok) window.location.href = "/"; }); }
         function toggleGlossary() { document.getElementById('sel-glossary').style.display = (document.getElementById('glossary-mode').value === 'use_existing') ? 'block' : 'none'; validate(); }
-        
         async function init() {
             try {
                 const res = await fetch('/api/get-form-data');
                 const data = await res.json();
-                
-                const selFile = document.getElementById('sel-file');
-                data.files_ko.forEach(f => selFile.innerHTML += `<option value="${f.file_id}">${f.name}</option>`);
-                
-                const selGloss = document.getElementById('sel-glossary');
-                data.glossaries.forEach(g => selGloss.innerHTML += `<option value="${g.file_id}">${g.name}</option>`);
-                
-                const selBP = document.getElementById('sel-bp');
-                const selPP = document.getElementById('sel-pp');
+                data.files_ko.forEach(f => document.getElementById('sel-file').innerHTML += `<option value="${f.file_id}">${f.name}</option>`);
+                data.glossaries.forEach(g => document.getElementById('sel-glossary').innerHTML += `<option value="${g.file_id}">${g.name}</option>`);
                 data.prompts_ru.forEach(p => { 
-                    selBP.innerHTML += `<option value="${p.file_id}">${p.name}</option>`;
-                    selPP.innerHTML += `<option value="${p.file_id}">${p.name}</option>`;
+                    [document.getElementById('sel-bp'), document.getElementById('sel-pp')].forEach(s => s.innerHTML += `<option value="${p.file_id}">${p.name}</option>`);
                 });
-                
                 validate();
-            } catch (e) {
-                console.error(e);
-                tg.showAlert("Ошибка загрузки данных.");
-            }
+            } catch (e) { tg.showAlert("Ошибка инициализации."); }
         }
         function validate() { 
             const file = document.getElementById('sel-file').value;
             const mode = document.getElementById('glossary-mode').value;
             const gloss = document.getElementById('sel-glossary').value;
-            
-            // Файл обязателен. Глоссарий обязателен, если не AI (т.е. если use_existing, то gloss не пуст).
-            const isGlossValid = (mode === 'create_ai' || (mode === 'use_existing' && gloss !== ''));
-            // Если выбран "none" (которого у нас нет, но для надежности), считаем невалидным
-            const isModeValid = (mode === 'use_existing' || mode === 'create_ai');
-
-            document.getElementById('btn-start').disabled = !(file && isGlossValid && isModeValid);
+            const bp = document.getElementById('sel-bp').value;
+            const pp = document.getElementById('sel-pp').value;
+            const glossValid = (mode === 'create_ai' || (mode === 'use_existing' && gloss !== ''));
+            document.getElementById('btn-start').disabled = !(file && bp && pp && glossValid);
         }
-
         async function submit() {
             const payload = {
                 file_id: document.getElementById('sel-file').value,
@@ -84,12 +67,7 @@
                 create_glossary: document.getElementById('glossary-mode').value === 'create_ai'
             };
             const res = await fetch('/api/start-translation', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
-            if (res.ok) { 
-                tg.showAlert("Перевод запущен!"); 
-                tg.close();
-            } else { 
-                tg.showAlert("Ошибка запуска!"); 
-            }
+            if (res.ok) { tg.close(); } else { tg.showAlert("Ошибка!"); }
         }
         init();
     </script>
