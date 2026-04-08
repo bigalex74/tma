@@ -38,6 +38,7 @@ class StartTranslationRequest(BaseModel):
     pp_file_id: str = None
     pp_file_name: str = None
     glossary_id: str = None
+    glossary_file_name: str = None
     create_glossary: bool = False
 
 def get_conn_pg(): return psycopg2.connect(**DB_CONFIG_POSTGRES)
