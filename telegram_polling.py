@@ -4,7 +4,8 @@ import json
 import time
 
 BOT_TOKEN = "8591497428:AAEbVnPaXYe2E-WI2ni2cCuSGnmgS5sckR0"
-N8N_WEBHOOK = "https://bigalexn8n.ru/webhook/21058a05-9f4c-4d4d-b5ad-6cf9ec57412a/webhook"
+# Внутренний адрес контейнера n8n
+N8N_WEBHOOK = "http://n8n-docker-n8n-1:5678/webhook/21058a05-9f4c-4d4d-b5ad-6cf9ec57412a/webhook"
 PROXY = "http://127.0.0.1:10808"
 
 telebot.apihelper.proxy = {'https': PROXY}
