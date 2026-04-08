@@ -200,8 +200,6 @@
             const prompt = document.getElementById('f-prompt').value;
             const payload = { name, prompt };
             
-            console.log("Saving prompt:", payload);
-            
             const method = editingItem ? 'PUT' : 'POST';
             const url = editingItem ? `/api/prompts/${editingItem.id}` : '/api/prompts';
             
@@ -213,15 +211,14 @@
                 });
                 
                 if (res.ok) { 
-                    tg.showAlert("Сохранено!"); 
-                    load(); 
+                    tg.showAlert("Сохранено!");
+                    await load();
+                    showView('list-view'); // Явно возвращаем в список
                 } else {
                     const err = await res.text();
-                    console.error("Save error:", err);
                     tg.showAlert("Ошибка: " + err);
                 }
             } catch (err) {
-                console.error("Fetch error:", err);
                 tg.showAlert("Ошибка сети");
             }
         }
