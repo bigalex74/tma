@@ -33,10 +33,12 @@ N8N_WEBHOOK_URL = "https://bigalexn8n.ru/webhook/trigger-translation"
 class StartTranslationRequest(BaseModel):
     file_id: str
     file_name: str
+    bp_file_id: str = None
+    bp_file_name: str = None
+    pp_file_id: str = None
+    pp_file_name: str = None
     glossary_id: str = None
     create_glossary: bool = False
-    bp_file_id: str = None
-    pp_file_id: str = None
 
 def get_conn_pg(): return psycopg2.connect(**DB_CONFIG_POSTGRES)
 
