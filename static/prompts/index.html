@@ -248,8 +248,14 @@
         function restore(h) {
             document.getElementById('f-name').value = h.name;
             document.getElementById('f-prompt').value = h.prompt;
-            const event = new Event('input', { bubbles: true });
-            document.getElementById('f-prompt').dispatchEvent(event);
+            
+            // Обновляем состояние отслеживания изменений
+            initialName = h.name;
+            initialText = h.prompt;
+            
+            // Активируем кнопку сохранения
+            document.getElementById('save-btn').classList.add('active');
+            
             showView('form-view');
             tg.showAlert("Версия подставлена. Нажмите 'Сохранить'.");
         }
