@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("TMA-Polling-Raw")
 
 BOT_TOKEN = "8591497428:AAEbVnPaXYe2E-WI2ni2cCuSGnmgS5sckR0"
-N8N_WEBHOOK = "http://192.168.1.124:5678/webhook/trigger-translation"
+N8N_WEBHOOK = "https://bigalexn8n.ru/webhook/trigger-translation"
 PROXY = {"https": "http://127.0.0.1:10808"}
 BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
