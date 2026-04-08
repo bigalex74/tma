@@ -33,7 +33,6 @@ N8N_WEBHOOK_URL = "https://bigalexn8n.ru/webhook/trigger-translation"
 class StartTranslationRequest(BaseModel):
     file_id: str
     file_name: str
-    chat_id: int = None
     bp_file_id: str = None
     bp_file_name: str = None
     pp_file_id: str = None
@@ -58,8 +57,7 @@ async def get_form_data():
                 message->'document'->>'file_name' as name, 
                 message->'document'->>'file_id' as file_id 
             FROM telegram_messages 
-            WHERE message->'document' IS NOT NULL 
-            AND (is_translate IS NULL OR is_translate = false)
+            WHERE message->'document' IS NOT NULL
             ORDER BY date_time DESC
         """)
         all_items = cur.fetchall()
@@ -171,12 +169,11 @@ async def update_prompt(prompt_id: int, data: dict):
         print(f"Error updating prompt {prompt_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/files/hide")
-async def hide_files(data: dict):
-    file_ids = data.get("file_ids", [])
+@app.delete("/api/prompts/{prompt_id}")
+async def delete_prompt(prompt_id: int):
     conn = get_conn_pg()
     cur = conn.cursor()
-    cur.execute("UPDATE telegram_messages SET is_translate = true WHERE message->'document'->>'file_id' = ANY(%s)", (file_ids,))
+    cur.execute("DELETE FROM translate_prompts WHERE id = %s", (prompt_id,))
     conn.commit()
     cur.close()
     conn.close()
@@ -197,12 +194,12 @@ async def get_prompt_history(prompt_id: int):
 async def main_hub():
     with open("static/index.html", "r", encoding="utf-8") as f: return f.read()
 
-@app.get("/manage-menu", response_class=HTMLResponse)
-async def manage_menu():
-    with open("static/manage-menu.html", "r", encoding="utf-8") as f: return f.read()
+@app.get("/files", response_class=HTMLResponse)
+async def files_page():
+    with open("static/files/index.html", "r", encoding="utf-8") as f: return f.read()
 
-@app.get("/manage", response_class=HTMLResponse)
-async def manage_page():
-    with open("static/manage/index.html", "r", encoding="utf-8") as f: return f.read()
+@app.get("/prompts", response_class=HTMLResponse)
+async def prompts_page():
+    with open("static/prompts/index.html", "r", encoding="utf-8") as f: return f.read()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")

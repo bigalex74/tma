@@ -64,11 +64,10 @@
             const f = document.getElementById('sel-file').value;
             const mode = document.getElementById('glossary-mode').value;
             const g = document.getElementById('sel-glossary').value;
-            
-            // Обязательны только Файл и Глоссарий (если выбран готовый)
+            const bp = document.getElementById('sel-bp').value;
+            const pp = document.getElementById('sel-pp').value;
             const glossValid = (mode === 'create_ai' || (mode === 'use_existing' && g !== ''));
-            
-            document.getElementById('btn-start').disabled = !(f && glossValid);
+            document.getElementById('btn-start').disabled = !(f && bp && pp && glossValid);
         }
         async function submit() {
             const f = document.getElementById('sel-file');
@@ -76,9 +75,7 @@
             const bp = document.getElementById('sel-bp');
             const pp = document.getElementById('sel-pp');
             const payload = {
-                file_id: f.value, 
-                file_name: f.options[f.selectedIndex].text,
-                chat_id: tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : null,
+                file_id: f.value, file_name: f.options[f.selectedIndex].text,
                 bp_file_id: bp.value, bp_file_name: bp.options[bp.selectedIndex].text,
                 pp_file_id: pp.value, pp_file_name: pp.options[pp.selectedIndex].text,
                 glossary_id: document.getElementById('glossary-mode').value === 'use_existing' ? g.value : null,
