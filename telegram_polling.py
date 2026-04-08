@@ -1,39 +1,42 @@
-import telebot
 import requests
-import json
 import time
 import logging
+import json
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("TMA-Polling")
+logger = logging.getLogger("TMA-Polling-Raw")
 
 BOT_TOKEN = "8591497428:AAEbVnPaXYe2E-WI2ni2cCuSGnmgS5sckR0"
 N8N_WEBHOOK = "http://127.0.0.1:5678/webhook/trigger-translation"
-PROXY = "http://127.0.0.1:10808"
+PROXY = {"https": "http://127.0.0.1:10808"}
+BASE_URL = f"https://api.telegram.org/bot{BOT_TOKEN}"
 
-def run_bot():
-    telebot.apihelper.proxy = {'https': PROXY}
-    bot = telebot.TeleBot(BOT_TOKEN)
+def run_polling():
+    offset = 0
+    logger.info("Raw polling bot started...")
     
-    try:
-        bot.delete_webhook(drop_pending_updates=True)
-        logger.info("Webhook deleted, starting polling...")
-    except Exception as e:
-        logger.error(f"Failed to delete webhook: {e}")
-    
-    @bot.message_handler(func=lambda message: True)
-    def handle_message(message):
-        try:
-            requests.post(N8N_WEBHOOK, json={"message": json.loads(message.json())}, timeout=15)
-        except Exception as e:
-            logger.error(f"Forwarding error: {e}")
-
     while True:
         try:
-            bot.infinity_polling(timeout=60, long_polling_timeout=60)
+            # Запрос обновлений напрямую
+            url = f"{BASE_URL}/getUpdates?offset={offset}&timeout=60"
+            resp = requests.get(url, proxies=PROXY, timeout=70)
+            data = resp.json()
+            
+            if data.get("ok") and data.get("result"):
+                for update in data["result"]:
+                    offset = update["update_id"] + 1
+                    message = update.get("message")
+                    if message:
+                        logger.info(f"Received msg ID: {message.get('message_id')}")
+                        # Отправка в n8n
+                        requests.post(N8N_WEBHOOK, json={"message": message}, timeout=15)
         except Exception as e:
-            logger.error(f"Polling error: {e}. Restarting in 10s...")
-            time.sleep(10)
+            logger.error(f"Polling error: {e}")
+            time.sleep(5)
 
 if __name__ == "__main__":
-    run_bot()
+    run_polling()
+EOF
+# Обновляем CMD для запуска нового скрипта
+sed -i 's|telegram_polling.py|telegram_polling.py|g' /home/user/telegram-apps/Dockerfile
+docker compose -f /home/user/lightrag/docker-compose.yml up -d --build apps-hub
