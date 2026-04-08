@@ -64,10 +64,11 @@
             const f = document.getElementById('sel-file').value;
             const mode = document.getElementById('glossary-mode').value;
             const g = document.getElementById('sel-glossary').value;
-            const bp = document.getElementById('sel-bp').value;
-            const pp = document.getElementById('sel-pp').value;
+            
+            // Обязательны только Файл и Глоссарий (если выбран готовый)
             const glossValid = (mode === 'create_ai' || (mode === 'use_existing' && g !== ''));
-            document.getElementById('btn-start').disabled = !(f && bp && pp && glossValid);
+            
+            document.getElementById('btn-start').disabled = !(f && glossValid);
         }
         async function submit() {
             const f = document.getElementById('sel-file');
