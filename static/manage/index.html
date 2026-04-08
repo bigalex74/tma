@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Удаление</title>
+    <title>Управление файлами</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { font-family: sans-serif; padding: 16px; background: #f0f2f5; }
@@ -11,41 +11,57 @@
         .file-item.selected { background: #fee; border: 2px solid #ff3b30; }
         .btn-group { display: flex; gap: 10px; margin-top: 20px; }
         button { padding: 14px; flex: 1; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
+        .btn-del { background: #ff3b30; color: white; }
     </style>
 </head>
 <body>
     <h2 id="title">Выбор файлов</h2>
     <div id="file-list"></div>
     <div class="btn-group">
-        <button style="background: #ff3b30; color: white;" onclick="hideSelected()">❌ Деактивировать</button>
+        <button class="btn-del" onclick="hideSelected()">❌ Деактивировать</button>
         <button onclick="window.location.href='/manage-menu'">⬅ Назад</button>
     </div>
     <script>
         let tg = window.Telegram.WebApp;
         let selectedFiles = new Set();
         async function init() {
+            const chat_id = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 0;
             const type = new URLSearchParams(window.location.search).get('type');
-            const data = await (await fetch('/api/get-form-data')).json();
-            const list = document.getElementById('file-list');
-            let items = (type === 'ko') ? data.files_ko : (type === 'xlsx') ? data.glossaries : data.prompts_ru;
+            try {
+                const res = await fetch(`/api/get-form-data?chat_id=${chat_id}`);
+                const data = await res.json();
+                const list = document.getElementById('file-list');
+                
+                let items = [];
+                if (type === 'ko') items = data.files_ko || [];
+                else if (type === 'xlsx') items = data.glossaries || [];
+                else items = data.prompts_ru || [];
 
-            items.forEach(f => {
-                const div = document.createElement('div');
-                div.className = 'file-item';
-                div.textContent = f.name;
-                div.onclick = () => {
-                    if(selectedFiles.has(f.file_id)) { selectedFiles.delete(f.file_id); div.classList.remove('selected'); }
-                    else { selectedFiles.add(f.file_id); div.classList.add('selected'); }
-                };
-                list.appendChild(div);
-            });
+                if (Array.isArray(items)) {
+                    items.forEach(f => {
+                        const div = document.createElement('div');
+                        div.className = 'file-item';
+                        div.textContent = f.name;
+                        div.onclick = () => {
+                            if(selectedFiles.has(f.file_id)) { selectedFiles.delete(f.file_id); div.classList.remove('selected'); }
+                            else { selectedFiles.add(f.file_id); div.classList.add('selected'); }
+                        };
+                        list.appendChild(div);
+                    });
+                } else {
+                    console.error("Data structure error:", data);
+                }
+            } catch(e) { console.error(e); tg.showAlert("Ошибка загрузки"); }
         }
         async function hideSelected() {
             if(selectedFiles.size === 0) return;
             const res = await fetch('/api/files/hide', { 
                 method: 'POST', 
                 headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({file_ids: Array.from(selectedFiles), chat_id: tg.initDataUnsafe.user.id}) 
+                body: JSON.stringify({
+                    file_ids: Array.from(selectedFiles),
+                    chat_id: tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 0
+                }) 
             });
             if(res.ok) { tg.showAlert("Файлы деактивированы!"); window.location.href = '/'; }
         }
