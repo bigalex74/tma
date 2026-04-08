@@ -12,7 +12,6 @@ import docx
 import shutil
 
 app = FastAPI(title="bigalexn8n Apps Hub")
-
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 N8N_WEBHOOK_URL = "https://bigalexn8n.ru/webhook/trigger-translation"
@@ -21,22 +20,17 @@ DB_CONFIG_POSTGRES = {"host": "127.0.0.1", "database": "postgres", "user": "n8n_
 def get_conn_pg(): return psycopg2.connect(**DB_CONFIG_POSTGRES)
 
 class StartTranslationRequest(BaseModel):
-    file_id: str
-    file_name: str
-    chat_id: int = None
-    bp_file_id: str = None
-    bp_file_name: str = None
-    pp_file_id: str = None
-    pp_file_name: str = None
-    glossary_id: str = None
-    glossary_file_name: str = None
+    file_id: str; file_name: str; chat_id: int = None
+    bp_file_id: str = None; bp_file_name: str = None
+    pp_file_id: str = None; pp_file_name: str = None
+    glossary_id: str = None; glossary_file_name: str = None
     create_glossary: bool = False
 
 @app.get("/api/get-form-data")
-async def get_form_data(chat_id: int):
+async def get_form_data():
     conn = get_conn_pg()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT type, lang, message->'document'->>'file_name' as name, message->'document'->>'file_id' as file_id FROM telegram_messages WHERE (message->'chat'->>'id')::bigint = %s AND message->'document' IS NOT NULL AND (is_translate IS NULL OR is_translate = false) ORDER BY date_time DESC", (chat_id,))
+    cur.execute("SELECT type, lang, message->'document'->>'file_name' as name, message->'document'->>'file_id' as file_id FROM telegram_messages WHERE message->'document' IS NOT NULL AND (is_translate IS NULL OR is_translate = false) ORDER BY date_time DESC")
     all_items = cur.fetchall()
     cur.close()
     conn.close()
@@ -55,10 +49,9 @@ async def start_translation(req: StartTranslationRequest):
 @app.post("/api/files/hide")
 async def hide_files(data: dict):
     file_ids = data.get("file_ids", [])
-    chat_id = data.get("chat_id")
     conn = get_conn_pg()
     cur = conn.cursor()
-    cur.execute("UPDATE telegram_messages SET is_translate = true WHERE message->'document'->>'file_id' = ANY(%s) AND (message->'chat'->>'id')::bigint = %s", (file_ids, chat_id))
+    cur.execute("UPDATE telegram_messages SET is_translate = true WHERE message->'document'->>'file_id' = ANY(%s)", (file_ids,))
     conn.commit()
     cur.close()
     conn.close()
