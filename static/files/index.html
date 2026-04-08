@@ -63,11 +63,10 @@
     <div class="section">
         <label class="label">📖 Глоссарий (XLSX)</label>
         <select id="glossary-mode" onchange="toggleGlossary()">
-            <option value="none">Без глоссария</option>
             <option value="use_existing">Использовать готовый</option>
             <option value="create_ai">Создать новый (AI)</option>
         </select>
-        <select id="sel-glossary" style="margin-top: 8px; display: none;" onchange="validate()">
+        <select id="sel-glossary" style="margin-top: 8px;" onchange="validate()">
             <option value="">Выберите файл глоссария...</option>
         </select>
     </div>
@@ -89,6 +88,49 @@
     </div>
 
     <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        async function init() {
+            try {
+                const res = await fetch('/api/get-form-data');
+                const data = await res.json();
+                
+                const selFile = document.getElementById('sel-file');
+                data.files_ko.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f.file_id;
+                    opt.textContent = f.name;
+                    selFile.appendChild(opt);
+                });
+
+                const selGloss = document.getElementById('sel-glossary');
+                data.glossaries.forEach(g => {
+                    const opt = document.createElement('option');
+                    opt.value = g.file_id;
+                    opt.textContent = g.name;
+                    selGloss.appendChild(opt);
+                });
+
+                const selBP = document.getElementById('sel-bp');
+                const selPP = document.getElementById('sel-pp');
+                data.prompts_ru.forEach(p => {
+                    const opt1 = document.createElement('option');
+                    opt1.value = p.file_id;
+                    opt1.textContent = p.name;
+                    selBP.appendChild(opt1);
+
+                    const opt2 = document.createElement('option');
+                    opt2.value = p.file_id;
+                    opt2.textContent = p.name;
+                    selPP.appendChild(opt2);
+                });
+            } catch (e) {
+                console.error(e);
+                tg.showAlert("Ошибка инициализации данных.");
+            }
+        }
+
         function toggleGlossary() {
             const mode = document.getElementById('glossary-mode').value;
             const select = document.getElementById('sel-glossary');
