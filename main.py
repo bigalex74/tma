@@ -97,6 +97,15 @@ import httpx
 
 @app.post("/api/start-translation")
 async def start_translation(req: StartTranslationRequest):
+@app.post("/api/files/hide")
+async def hide_files(data: dict):
+    conn = get_conn_pg()
+    cur = conn.cursor()
+    cur.execute("UPDATE telegram_messages SET is_translate = true WHERE message->'document'->>'file_id' = ANY(%s)", (data.get("file_ids", []),))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"status": "success"}
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.post(N8N_WEBHOOK_URL, json=req.dict(), timeout=10.0)
