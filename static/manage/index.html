@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление файлами</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --tg-theme-bg-color: #f0f2f5; --tg-theme-secondary-bg-color: #ffffff; --tg-theme-text-color: #222; }
+        body { background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); font-family: -apple-system, sans-serif; padding: 16px; }
+        .file-item { display: flex; align-items: center; padding: 12px; background: white; margin-bottom: 8px; border-radius: 8px; cursor: pointer; }
+        .file-item.selected { background: #ffeded; border: 1px solid #ff3b30; }
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        button { padding: 12px; flex: 1; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-del { background: #ff3b30; color: white; }
+    </style>
+</head>
+<body>
+    <h2 id="title">Управление файлами</h2>
+    <div id="file-list"></div>
+    <div class="btn-group">
+        <button class="btn-del" onclick="hideSelected()">❌ Удалить (Деактивировать)</button>
+        <button onclick="window.location.href='/'">⬅ Отмена</button>
+    </div>
+    <script>
+        let selectedFiles = new Set();
+        async function init() {
+            const type = new URLSearchParams(window.location.search).get('type');
+            const data = await (await fetch('/api/get-form-data')).json();
+            const list = document.getElementById('file-list');
+            let items = [];
+            if(type === 'ko') items = data.files_ko;
+            else if(type === 'xlsx') items = data.glossaries;
+            else items = data.prompts_ru;
+
+            items.forEach(f => {
+                const div = document.createElement('div');
+                div.className = 'file-item';
+                div.innerHTML = f.name;
+                div.onclick = () => {
+                    if(selectedFiles.has(f.file_id)) { selectedFiles.delete(f.file_id); div.classList.remove('selected'); }
+                    else { selectedFiles.add(f.file_id); div.classList.add('selected'); }
+                };
+                list.appendChild(div);
+            });
+        }
+        async function hideSelected() {
+            if(selectedFiles.size === 0) return;
+            const res = await fetch('/api/files/hide', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({file_ids: Array.from(selectedFiles)}) });
+            if(res.ok) { window.location.href = '/'; }
+        }
+        init();
+    </script>
+</body>
+</html>

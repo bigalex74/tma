@@ -58,7 +58,8 @@ async def get_form_data():
                 message->'document'->>'file_name' as name, 
                 message->'document'->>'file_id' as file_id 
             FROM telegram_messages 
-            WHERE message->'document' IS NOT NULL
+            WHERE message->'document' IS NOT NULL 
+            AND (is_translate IS NULL OR is_translate = false)
             ORDER BY date_time DESC
         """)
         all_items = cur.fetchall()
@@ -170,11 +171,12 @@ async def update_prompt(prompt_id: int, data: dict):
         print(f"Error updating prompt {prompt_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.delete("/api/prompts/{prompt_id}")
-async def delete_prompt(prompt_id: int):
+@app.post("/api/files/hide")
+async def hide_files(data: dict):
+    file_ids = data.get("file_ids", [])
     conn = get_conn_pg()
     cur = conn.cursor()
-    cur.execute("DELETE FROM translate_prompts WHERE id = %s", (prompt_id,))
+    cur.execute("UPDATE telegram_messages SET is_translate = true WHERE message->'document'->>'file_id' = ANY(%s)", (file_ids,))
     conn.commit()
     cur.close()
     conn.close()
@@ -199,8 +201,8 @@ async def main_hub():
 async def files_page():
     with open("static/files/index.html", "r", encoding="utf-8") as f: return f.read()
 
-@app.get("/prompts", response_class=HTMLResponse)
-async def prompts_page():
-    with open("static/prompts/index.html", "r", encoding="utf-8") as f: return f.read()
+@app.get("/manage", response_class=HTMLResponse)
+async def manage_page():
+    with open("static/manage/index.html", "r", encoding="utf-8") as f: return f.read()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
