@@ -16,9 +16,9 @@ Test timeout of 30000ms exceeded.
 ```
 
 ```
-Error: page.goto: Test timeout of 30000ms exceeded.
+Error: page.waitForSelector: Test timeout of 30000ms exceeded.
 Call log:
-  - navigating to "http://127.0.0.1:8000/files", waiting until "load"
+  - waiting for locator('#sel-file option:nth-child(2)') to be visible
 
 ```
 
@@ -28,10 +28,10 @@ Call log:
   1  | const { test, expect } = require('@playwright/test');
   2  | 
   3  | test('Smoke test: verify UI elements and form validation', async ({ page }) => {
-> 4  |   await page.goto('/files');
-     |              ^ Error: page.goto: Test timeout of 30000ms exceeded.
+  4  |   await page.goto('/files');
   5  |   
-  6  |   await page.waitForSelector('#sel-file option:nth-child(2)');
+> 6  |   await page.waitForSelector('#sel-file option:nth-child(2)');
+     |              ^ Error: page.waitForSelector: Test timeout of 30000ms exceeded.
   7  |   
   8  |   const startBtn = page.locator('#btn-start');
   9  |   await expect(startBtn).toBeDisabled();
