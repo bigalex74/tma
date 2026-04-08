@@ -25,6 +25,7 @@ class StartTranslationRequest(BaseModel):
     file_id: str
     file_name: str
     glossary_id: str = None
+    create_glossary: bool = False
     bp_file_id: str = None
     pp_file_id: str = None
 

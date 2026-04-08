@@ -59,94 +59,32 @@
         </select>
     </div>
 
-    <!-- Выбор Глоссария (XLSX) -->
+    <!-- Выбор Глоссария -->
     <div class="section">
         <label class="label">📖 Глоссарий (XLSX)</label>
-        <select id="sel-glossary" onchange="validate()">
-            <option value="">Без глоссария</option>
+        <select id="glossary-mode" onchange="toggleGlossary()">
+            <option value="none">Без глоссария</option>
+            <option value="use_existing">Использовать готовый</option>
+            <option value="create_ai">Создать новый (AI)</option>
         </select>
-    </div>
-
-    <!-- Выбор Промпта Переводчика (RU) -->
-    <div class="section">
-        <label class="label">🤖 Промпт Переводчика (RU)</label>
-        <select id="sel-bp" onchange="validate()">
-            <option value="">Выберите файл промпта...</option>
+        <select id="sel-glossary" style="margin-top: 8px; display: none;">
+            <option value="">Выберите файл глоссария...</option>
         </select>
-    </div>
-
-    <!-- Выбор Промпта Редактора (RU) -->
-    <div class="section">
-        <label class="label">✍️ Промпт Редактора (RU)</label>
-        <select id="sel-pp" onchange="validate()">
-            <option value="">Выберите файл промпта...</option>
-        </select>
-    </div>
-
-    <button id="btn-start" class="btn-start" onclick="submit()" disabled>🚀 Запустить процесс</button>
-
-    <div class="footer-link">
-        <a href="/">⬅ Вернуться в меню</a>
     </div>
 
     <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-
-        async function init() {
-            try {
-                const res = await fetch('/api/get-form-data');
-                const data = await res.json();
-                
-                // 1. Заполняем Корейские файлы
-                const selFile = document.getElementById('sel-file');
-                data.files_ko.forEach(f => {
-                    const opt = document.createElement('option');
-                    opt.value = f.file_id;
-                    opt.textContent = f.name;
-                    selFile.appendChild(opt);
-                });
-
-                // 2. Заполняем Глоссарии (XLSX)
-                const selGloss = document.getElementById('sel-glossary');
-                data.glossaries.forEach(g => {
-                    const opt = document.createElement('option');
-                    opt.value = g.file_id;
-                    opt.textContent = g.name;
-                    selGloss.appendChild(opt);
-                });
-
-                // 3. Заполняем Промпты (RU)
-                const selBP = document.getElementById('sel-bp');
-                const selPP = document.getElementById('sel-pp');
-                data.prompts_ru.forEach(p => {
-                    const opt1 = document.createElement('option');
-                    opt1.value = p.file_id;
-                    opt1.textContent = p.name;
-                    selBP.appendChild(opt1);
-
-                    const opt2 = document.createElement('option');
-                    opt2.value = p.file_id;
-                    opt2.textContent = p.name;
-                    selPP.appendChild(opt2);
-                });
-
-            } catch (e) {
-                tg.showAlert("Ошибка загрузки данных из Telegram.");
-            }
-        }
-
-        function validate() {
-            const file = document.getElementById('sel-file').value;
-            const bp = document.getElementById('sel-bp').value;
-            const pp = document.getElementById('sel-pp').value;
-            document.getElementById('btn-start').disabled = !(file && bp && pp);
+        function toggleGlossary() {
+            const mode = document.getElementById('glossary-mode').value;
+            const select = document.getElementById('sel-glossary');
+            select.style.display = (mode === 'use_existing') ? 'block' : 'none';
+            validate();
         }
 
         async function submit() {
             const fileSelect = document.getElementById('sel-file');
             const bpSelect = document.getElementById('sel-bp');
             const ppSelect = document.getElementById('sel-pp');
+            const mode = document.getElementById('glossary-mode').value;
             const glSelect = document.getElementById('sel-glossary');
 
             const payload = {
@@ -154,8 +92,12 @@
                 file_name: fileSelect.options[fileSelect.selectedIndex].text,
                 bp_file_id: bpSelect.value,
                 pp_file_id: ppSelect.value,
-                glossary_id: glSelect.value || null
+                glossary_id: (mode === 'use_existing') ? glSelect.value : null,
+                create_glossary: (mode === 'create_ai')
             };
+
+            // ... (далее submit логика)
+
 
             tg.showConfirm(`Запустить перевод файла "${payload.file_name}"?`, async (ok) => {
                 if (ok) {
