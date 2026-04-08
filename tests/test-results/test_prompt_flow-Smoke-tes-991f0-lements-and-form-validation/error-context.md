@@ -31,24 +31,17 @@ Call log:
 > 4  |   await page.goto('/files');
      |              ^ Error: page.goto: Test timeout of 30000ms exceeded.
   5  |   
-  6  |   // Ждем, пока селекты заполнятся (init вызывается в конце скрипта)
-  7  |   await page.waitForSelector('#sel-file option:nth-child(2)');
-  8  |   
-  9  |   // Проверка селектов
-  10 |   const fileOptions = await page.locator('#sel-file option').count();
-  11 |   expect(fileOptions).toBeGreaterThan(1);
-  12 |   
-  13 |   // Проверка кнопки
-  14 |   const startBtn = page.locator('#btn-start');
-  15 |   await expect(startBtn).toBeDisabled();
-  16 | 
-  17 |   // Выбор значений
-  18 |   await page.selectOption('#sel-file', { index: 1 });
-  19 |   await page.selectOption('#sel-bp', { index: 1 });
-  20 |   await page.selectOption('#sel-pp', { index: 1 });
-  21 |   
-  22 |   // Проверка разблокировки
-  23 |   await expect(startBtn).toBeEnabled();
-  24 | });
-  25 | 
+  6  |   await page.waitForSelector('#sel-file option:nth-child(2)');
+  7  |   
+  8  |   const startBtn = page.locator('#btn-start');
+  9  |   await expect(startBtn).toBeDisabled();
+  10 | 
+  11 |   // Выбор файла и глоссария
+  12 |   await page.selectOption('#sel-file', { index: 1 });
+  13 |   await page.selectOption('#glossary-mode', 'create_ai');
+  14 |   
+  15 |   // Кнопка должна стать активной
+  16 |   await expect(startBtn).toBeEnabled();
+  17 | });
+  18 | 
 ```

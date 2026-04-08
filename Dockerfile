@@ -11,7 +11,7 @@ COPY main.py .
 COPY static ./static
 
 # Добавлен пакет requests
-RUN pip install fastapi uvicorn psycopg2-binary pydantic requests python-docx python-multipart
+RUN pip install fastapi uvicorn psycopg2-binary pydantic requests python-docx python-multipart httpx
 
 EXPOSE 8000
 

@@ -2,14 +2,23 @@ from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import os
 import requests
 import docx
+import shutil
 
 app = FastAPI(title="bigalexn8n Apps Hub")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # ВСЕ данные теперь берем из базы postgres (как указал пользователь)
 DB_CONFIG_POSTGRES = {
     "host": "127.0.0.1", 
@@ -19,7 +28,7 @@ DB_CONFIG_POSTGRES = {
     "port": 5432
 }
 
-N8N_WEBHOOK_URL = "http://127.0.0.1:5678/webhook/trigger-translation"
+N8N_WEBHOOK_URL = "https://bigalexn8n.ru/webhook/trigger-translation"
 
 class StartTranslationRequest(BaseModel):
     file_id: str
@@ -80,12 +89,20 @@ async def get_form_data():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+import httpx
+# ... (остальные импорты)
+
 @app.post("/api/start-translation")
 async def start_translation(req: StartTranslationRequest):
     try:
-        requests.post(N8N_WEBHOOK_URL, json=req.dict())
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(N8N_WEBHOOK_URL, json=req.dict(), timeout=10.0)
+            print(f"n8n webhook response: {resp.status_code} - {resp.text}")
+            if resp.status_code != 200:
+                raise HTTPException(status_code=502, detail=f"n8n error: {resp.text}")
         return {"status": "success"}
     except Exception as e:
+        print(f"Webhook error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 import shutil

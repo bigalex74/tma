@@ -52,10 +52,12 @@
             const file = document.getElementById('sel-file').value;
             const mode = document.getElementById('glossary-mode').value;
             const gloss = document.getElementById('sel-glossary').value;
-            const bp = document.getElementById('sel-bp').value;
-            const pp = document.getElementById('sel-pp').value;
+            
+            // Файл и Глоссарий теперь обязательны.
             const glossValid = (mode === 'create_ai' || (mode === 'use_existing' && gloss !== ''));
-            document.getElementById('btn-start').disabled = !(file && bp && pp && glossValid);
+            
+            // Кнопка активна, если есть файл и валиден глоссарий
+            document.getElementById('btn-start').disabled = !(file && glossValid);
         }
         async function submit() {
             const payload = {
