@@ -202,4 +202,12 @@ async def files_page():
 async def prompts_page():
     with open("static/prompts/index.html", "r", encoding="utf-8") as f: return f.read()
 
+@app.get("/manage-menu", response_class=HTMLResponse)
+async def manage_menu():
+    with open("static/manage-menu.html", "r", encoding="utf-8") as f: return f.read()
+
+@app.get("/manage", response_class=HTMLResponse)
+async def manage_page():
+    with open("static/manage/index.html", "r", encoding="utf-8") as f: return f.read()
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
