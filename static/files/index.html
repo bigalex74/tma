@@ -89,6 +89,7 @@
 
     <script>
         let tg = window.Telegram.WebApp;
+        function cancel() { tg.showConfirm("Отменить настройки?", (ok) => { if (ok) window.location.href = "/"; }); }
         tg.expand();
 
         async function init() {
