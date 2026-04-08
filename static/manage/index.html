@@ -45,7 +45,7 @@
             const res = await fetch('/api/files/hide', { 
                 method: 'POST', 
                 headers: {'Content-Type': 'application/json'}, 
-                body: JSON.stringify({file_ids: Array.from(selectedFiles)}) 
+                body: JSON.stringify({file_ids: Array.from(selectedFiles), chat_id: tg.initDataUnsafe.user.id}) 
             });
             if(res.ok) { tg.showAlert("Файлы деактивированы!"); window.location.href = '/'; }
         }
