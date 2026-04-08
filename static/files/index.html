@@ -36,16 +36,31 @@
         tg.expand();
         function cancel() { tg.showConfirm("Отменить настройки?", (ok) => { if (ok) window.location.href = "/"; }); }
         function toggleGlossary() { document.getElementById('sel-glossary').style.display = (document.getElementById('glossary-mode').value === 'use_existing') ? 'block' : 'none'; validate(); }
+        
         async function init() {
-            const res = await fetch('/api/get-form-data');
-            const data = await res.json();
-            data.files_ko.forEach(f => document.getElementById('sel-file').innerHTML += `<option value="${f.file_id}">${f.name}</option>`);
-            data.glossaries.forEach(g => document.getElementById('sel-glossary').innerHTML += `<option value="${g.file_id}">${g.name}</option>`);
-            data.prompts_ru.forEach(p => { 
-                [document.getElementById('sel-bp'), document.getElementById('sel-pp')].forEach(s => s.innerHTML += `<option value="${p.file_id}">${p.name}</option>`);
-            });
-            validate();
+            try {
+                const res = await fetch('/api/get-form-data');
+                const data = await res.json();
+                
+                const selFile = document.getElementById('sel-file');
+                data.files_ko.forEach(f => selFile.innerHTML += `<option value="${f.file_id}">${f.name}</option>`);
+                
+                const selGloss = document.getElementById('sel-glossary');
+                data.glossaries.forEach(g => selGloss.innerHTML += `<option value="${g.file_id}">${g.name}</option>`);
+                
+                const selBP = document.getElementById('sel-bp');
+                const selPP = document.getElementById('sel-pp');
+                data.prompts_ru.forEach(p => { 
+                    selBP.innerHTML += `<option value="${p.file_id}">${p.name}</option>`;
+                    selPP.innerHTML += `<option value="${p.file_id}">${p.name}</option>`;
+                });
+                
+                validate();
             } catch (e) {
+                console.error(e);
+                tg.showAlert("Ошибка загрузки данных.");
+            }
+        }
         function validate() { 
             const file = document.getElementById('sel-file').value;
             const mode = document.getElementById('glossary-mode').value;
