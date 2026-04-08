@@ -28,7 +28,7 @@ DB_CONFIG_POSTGRES = {
     "port": 5432
 }
 
-N8N_WEBHOOK_URL = "https://bigalexn8n.ru/webhook/21058a05-9f4c-4d4d-b5ad-6cf9ec57412a/webhook"
+N8N_WEBHOOK_URL = "https://bigalexn8n.ru/webhook/trigger-translation"
 
 class StartTranslationRequest(BaseModel):
     file_id: str
