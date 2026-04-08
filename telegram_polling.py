@@ -8,14 +8,18 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("TMA-Polling")
 
 BOT_TOKEN = "8591497428:AAEbVnPaXYe2E-WI2ni2cCuSGnmgS5sckR0"
-N8N_WEBHOOK = "http://127.0.0.1:5678/webhook/21058a05-9f4c-4d4d-b5ad-6cf9ec57412a/webhook"
+N8N_WEBHOOK = "http://127.0.0.1:5678/webhook/trigger-translation"
 PROXY = "http://127.0.0.1:10808"
 
-telebot.apihelper.proxy = {'https': PROXY}
-bot = telebot.TeleBot(BOT_TOKEN)
-
 def run_bot():
-    logger.info("Polling bot started...")
+    telebot.apihelper.proxy = {'https': PROXY}
+    bot = telebot.TeleBot(BOT_TOKEN)
+    
+    try:
+        bot.delete_webhook(drop_pending_updates=True)
+        logger.info("Webhook deleted, starting polling...")
+    except Exception as e:
+        logger.error(f"Failed to delete webhook: {e}")
     
     @bot.message_handler(func=lambda message: True)
     def handle_message(message):
