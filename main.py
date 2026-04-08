@@ -26,28 +26,79 @@ class StartTranslationRequest(BaseModel):
     glossary_id: str = None; glossary_file_name: str = None
     create_glossary: bool = False
 
+# Работа с файлами (с фильтрацией по chat_id)
 @app.get("/api/get-form-data")
 async def get_form_data(chat_id: int):
-    print(f"DEBUG: Requesting form data for chat_id: {chat_id}")
     conn = get_conn_pg()
     cur = conn.cursor(cursor_factory=RealDictCursor)
-    # Используем chat_id для фильтрации
-    cur.execute("""
-        SELECT type, lang, message->'document'->>'file_name' as name, message->'document'->>'file_id' as file_id 
-        FROM telegram_messages 
-        WHERE (message->'chat'->>'id')::bigint = %s 
-        AND message->'document' IS NOT NULL 
-        AND (is_translate IS NULL OR is_translate = false) 
-        ORDER BY date_time DESC
-    """, (chat_id,))
+    cur.execute("SELECT type, lang, message->'document'->>'file_name' as name, message->'document'->>'file_id' as file_id FROM telegram_messages WHERE (message->'chat'->>'id')::bigint = %s AND message->'document' IS NOT NULL AND (is_translate IS NULL OR is_translate = false) ORDER BY date_time DESC", (chat_id,))
     all_items = cur.fetchall()
     cur.close()
     conn.close()
-    return {
-        "files_ko": [f for f in all_items if f['lang'] == 'ko'],
-        "glossaries": [f for f in all_items if f['type'] == 'xlsx'],
-        "prompts_ru": [f for f in all_items if f['lang'] == 'ru']
-    }
+    return {"files_ko": [f for f in all_items if f['lang'] == 'ko'], "glossaries": [f for f in all_items if f['type'] == 'xlsx'], "prompts_ru": [f for f in all_items if f['lang'] == 'ru']}
+
+@app.post("/api/files/hide")
+async def hide_files(data: dict):
+    file_ids = data.get("file_ids", []); chat_id = data.get("chat_id")
+    conn = get_conn_pg()
+    cur = conn.cursor()
+    cur.execute("UPDATE telegram_messages SET is_translate = true WHERE message->'document'->>'file_id' = ANY(%s) AND (message->'chat'->>'id')::bigint = %s", (file_ids, chat_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"status": "success"}
+
+# Работа с промптами (БЕЗ фильтрации по chat_id)
+@app.get("/api/prompts")
+async def get_prompts_db():
+    conn = get_conn_pg()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("SELECT id, name, prompt FROM translate_prompts ORDER BY name")
+    data = cur.fetchall()
+    cur.close()
+    conn.close()
+    return data
+
+@app.post("/api/prompts")
+async def create_prompt(data: dict):
+    conn = get_conn_pg()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO translate_prompts (name, prompt) VALUES (%s, %s)", (data['name'], data['prompt']))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"status": "success"}
+
+@app.put("/api/prompts/{prompt_id}")
+async def update_prompt(prompt_id: int, data: dict):
+    conn = get_conn_pg()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO translate_prompts_history (prompt_id, name, prompt, version_date) SELECT id, name, prompt, CURRENT_TIMESTAMP FROM translate_prompts WHERE id = %s", (prompt_id,))
+    cur.execute("UPDATE translate_prompts SET name = %s, prompt = %s WHERE id = %s", (data['name'], data['prompt'], prompt_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"status": "success"}
+
+@app.delete("/api/prompts/{prompt_id}")
+async def delete_prompt(prompt_id: int):
+    conn = get_conn_pg()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM translate_prompts WHERE id = %s", (prompt_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {"status": "success"}
+
+@app.get("/api/prompts/{prompt_id}/history")
+async def get_prompt_history(prompt_id: int):
+    conn = get_conn_pg()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("SELECT id, prompt_id, name, prompt, version_date FROM translate_prompts_history WHERE prompt_id = %s ORDER BY version_date DESC", (prompt_id,))
+    data = cur.fetchall()
+    cur.close()
+    conn.close()
+    return data
 
 @app.post("/api/start-translation")
 async def start_translation(req: StartTranslationRequest):
@@ -55,16 +106,20 @@ async def start_translation(req: StartTranslationRequest):
         await client.post(N8N_WEBHOOK_URL, json=req.dict(), timeout=10.0)
         return {"status": "success"}
 
-@app.post("/api/files/hide")
-async def hide_files(data: dict):
-    file_ids = data.get("file_ids", [])
-    conn = get_conn_pg()
-    cur = conn.cursor()
-    cur.execute("UPDATE telegram_messages SET is_translate = true WHERE message->'document'->>'file_id' = ANY(%s)", (file_ids,))
-    conn.commit()
-    cur.close()
-    conn.close()
-    return {"status": "success"}
+@app.post("/api/upload-file")
+async def upload_file(file: UploadFile = File(...)):
+    try:
+        if file.filename.endswith(".docx"):
+            with open("temp.docx", "wb") as buffer: shutil.copyfileobj(file.file, buffer)
+            doc = docx.Document("temp.docx")
+            full_text = "\n".join([para.text for para in doc.paragraphs])
+            os.remove("temp.docx")
+            return {"text": full_text}
+        else:
+            content = await file.read()
+            return {"text": content.decode("utf-8")}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/", response_class=HTMLResponse)
 async def main_hub():
